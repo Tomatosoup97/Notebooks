@@ -18,8 +18,7 @@ def _pmx(p1, p2, i, j):
 
     for k, el in enumerate(p2[i:j+1], i):
         if el not in c:
-            place = find_place(k)
-            c[place] = el
+            c[find_place(k)] = el
 
     for k, el in enumerate(c):
         if el == -1:
@@ -68,11 +67,13 @@ def random_partition(n):
 
 
 def pmx_crossover(p1, p2):
+    # Partially-mapped crossover
     i, j = random_partition(len(p1))
     return _pmx(p1, p2, i, j), _pmx(p2, p1, i, j)
 
 
 def ox_crossover(p1, p2):
+    # Order Crossover
     i, j = random_partition(len(p1))
     return _ox(p1, p2, i, j), _ox(p2, p1, i, j)
 
