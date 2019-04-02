@@ -72,6 +72,12 @@ def pmx_crossover(p1, p2):
     return _pmx(p1, p2, i, j), _pmx(p2, p1, i, j)
 
 
+def double_pmx_crossover(pq1, pq2):
+    p1, q1 = pq1
+    p2, q2 = pq2
+    return pmx_crossover(p1, q1), pmx_crossover(p2, q2)
+
+
 def ox_crossover(p1, p2):
     # Order Crossover
     i, j = random_partition(len(p1))

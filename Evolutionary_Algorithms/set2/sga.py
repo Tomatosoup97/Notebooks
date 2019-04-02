@@ -7,6 +7,7 @@ from plot import *
 from operators import *
 from mutations import *
 
+# TODO: hardcoded 2's for Q3AP in gen_initial_population, create_children_population: (size, 2, chromosome_len)
 
 def tsp_objective_function(n, A, perm):
     n = len(perm)
@@ -16,17 +17,17 @@ def tsp_objective_function(n, A, perm):
     return s
 
 
-def gen_initial_population(size, chromosome_len):
-    current_population = np.zeros((size, chromosome_len), dtype=np.int64)
+def gen_initial_population(size, chromosome_len, gen_random_sample):
+    current_population = np.zeros((size, 2, chromosome_len), dtype=np.int64)
     for i in range(size):
-        current_population[i, :] = np.random.permutation(chromosome_len)
+        current_population[i, :] = gen_random_sample(chromosome_len)
     return current_population
 
 
-def eval_obj_function(A, population, size, objective_func=tsp_objective_function):
+def eval_obj_function(A, chromosome_length, objective_func, population, size):
     objective_values = np.zeros(size)
     for i in range(size):
-        objective_values[i] = objective_func(size, A, population[i, :])
+        objective_values[i] = objective_func(chromosome_length, A, population[i, :])
     return objective_values
 
 
@@ -58,7 +59,7 @@ def roulette_wheel_parent_indicies(objective_values, population_size, number_of_
 
 def create_children_population(population, parent_indices, number_of_offspring,
                                chromosome_length, crossover_operator, crossover_probability):
-    children_population = np.zeros((number_of_offspring, chromosome_length), dtype=np.int64)
+    children_population = np.zeros((number_of_offspring, 2, chromosome_length), dtype=np.int64)
     for i in range(int(number_of_offspring/2)):
         if np.random.random() < crossover_probability:
             children_population[2*i, :], children_population[2*i+1, :] = \
@@ -75,6 +76,22 @@ crossover_operator = pmx_crossover
 mutation_operator = reverse_sequence_mutation
 
 
+def gen_initial_sample(chromosome_length):
+    return np.zeros((1, chromosome_length))
+
+
+def gen_double_initial_sample(chromosome_length):
+    return gen_initial_sample(chromosome_length), gen_initial_sample(chromosome_length)
+
+
+def gen_random_sample(chromosome_length):
+    return np.random.permutation(chromosome_length)
+
+
+def gen_random_double_sample(chromosome_length):
+    return gen_random_sample(chromosome_length), gen_random_sample(chromosome_length)
+
+
 def sga(T,
         distance_matrix,
         crossover_operator,
@@ -85,16 +102,21 @@ def sga(T,
         mutation_probability,
         objective_func=tsp_objective_function,
         local_search_probability=0,
-        local_search_k=2):
+        local_search_k=2,
+        gen_initial_sample=gen_initial_sample,
+        gen_random_sample=gen_random_sample):
 
     costs = np.zeros(T)
     
     number_of_offspring = population_size
     best_objective_value = np.Inf
-    best_chromosome = np.zeros((1, chromosome_length))
+    best_chromosome = gen_initial_sample(chromosome_length)
 
-    current_population = gen_initial_population(population_size, chromosome_length)
-    objective_values = eval_obj_function(distance_matrix, current_population, population_size)
+    current_population = gen_initial_population(population_size, chromosome_length, gen_random_sample)
+
+    eval_sga_obj_func = partial(eval_obj_function, distance_matrix, chromosome_length, objective_func)
+
+    objective_values = eval_sga_obj_func(current_population, population_size)
 
     time0 = time.time()
 
@@ -111,10 +133,10 @@ def sga(T,
             partial(objective_func, chromosome_length, distance_matrix), 
             local_search_k,
         )
-        if (T * 1/10) < t:
+        if (T * 2/10) < t:
             mutation(local_search_operator, children_population, number_of_offspring, local_search_probability)
 
-        children_objective_values = eval_obj_function(distance_matrix, children_population, number_of_offspring)
+        children_objective_values = eval_sga_obj_func(children_population, number_of_offspring)
 
         current_population, objective_values = mu_plus_lambda_replacement(current_population, children_population,
                                                                           objective_values,

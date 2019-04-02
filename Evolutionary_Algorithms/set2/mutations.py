@@ -32,7 +32,13 @@ def scramble_mutation(k, p):
     return q
 
 
-def local_search_mutation(objective_func, k, p):
+def double_scramble_mutation(k, pq):
+    p, q = pq
+    return scramble_mutation(k, p), scramble_mutation(k, q)
+
+
+
+def local_search_mutation__alt(objective_func, k, p):
     positions = np.random.choice(len(p), k, False)
     best_sample_val = objective_func(p)
     best_sample = p
@@ -58,4 +64,21 @@ def local_search_mutation(objective_func, k, p):
     return best_sample
 
 
-two_scramble_mutation = partial(scramble_mutation, 2)
+def local_search_mutation(objective_func, k, p):
+    N = len(p) * k
+
+    best_result = p
+    best_value = objective_func(p)
+
+    for i in range(N):
+        candidate = scramble_mutation(k, p)
+        cand_value = objective_func(candidate)
+        if cand_value < best_value:
+            best_result = candidate
+            best_value = cand_value
+    return best_result
+
+
+k_scramble_mutation = lambda k: partial(scramble_mutation, k)
+k_double_scramble_mutation = lambda k: partial(double_scramble_mutation, k)
+two_scramble_mutation = k_scramble_mutation(2)
