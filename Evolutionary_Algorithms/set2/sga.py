@@ -119,6 +119,8 @@ def sga(T,
     objective_values = eval_sga_obj_func(current_population, population_size)
 
     time0 = time.time()
+    
+    std_zero_count = 0
 
     for t in range(T):
         parent_indices = roulette_wheel_parent_indicies(objective_values, population_size, number_of_offspring)
@@ -128,7 +130,7 @@ def sga(T,
                                                          crossover_operator, crossover_probability)
 
         mutation(mutation_operator, children_population, number_of_offspring, mutation_probability)
-        
+
         local_search_operator = partial(local_search_mutation,
             partial(objective_func, chromosome_length, distance_matrix), 
             local_search_k,
@@ -154,6 +156,13 @@ def sga(T,
                     objective_values.min(), objective_values.mean(),
                     objective_values.max(), objective_values.std())
                  )
+        
+        if objective_values.std() == 0:
+            std_zero_count += 1
+           
+        if std_zero_count > 20:
+            break
+
             
     return {
         'costs': costs,

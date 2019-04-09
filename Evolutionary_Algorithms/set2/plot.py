@@ -29,7 +29,7 @@ def plot_sga_results(problem_name, opts=tsp_opts, **data):
     print('Results for {}'.format(problem_name))
     print('Min cost: {}'.format(min_cost))
     print('OPT cost: {}'.format(opts[problem_name]))
-    print('Relative error: {}%'.format(round(relative_error(opts[problem_name], min_cost)*100, 2)))
+#    print('Relative error: {}%'.format(round(relative_error(opts[problem_name], min_cost)*100, 2)))
     print('Absolute error: {}'.format(round(absolute_error(opts[problem_name], min_cost), 2)))
 
     print('costs mean: {}'.format(costs.mean()))
